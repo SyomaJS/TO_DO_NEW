@@ -6,6 +6,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function start() {
   try {
     const app = await NestFactory.create(AppModule);
+
+    app.enableCors({
+      origin: 'http://localhost:5173',
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      credentials: true,
+    });
+
     const PORT = process.env.PORT || 3030;
     app.setGlobalPrefix('api');
     app.use(cookieParser());
