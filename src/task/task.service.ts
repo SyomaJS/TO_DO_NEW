@@ -35,7 +35,7 @@ export class TaskService {
   async findAllTasks(token) {
     const decoded = this.jwtService.decode(token);
     const userId = decoded['id'];
-    const tasks = await this.taskModel.find({ user: userId });
+    const tasks = await this.taskModel.find({ userId: userId });
     return tasks;
   }
 
