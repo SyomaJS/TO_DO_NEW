@@ -31,17 +31,17 @@ export class Task {
 
   @ApiProperty({
     description: 'The start date of the task',
-    example: '2023-08-17T10:00:00Z',
+    example: '2023-08-17',
   })
-  @Prop({ required: true, type: Date })
-  startDate: Date;
+  @Prop({ required: true, type: String })
+  startDate: String;
 
   @ApiProperty({
     description: 'The end date of the task',
-    example: '2023-08-20T15:30:00Z',
+    example: '2023-08-20',
   })
-  @Prop({ type: Date })
-  endDate: Date;
+  @Prop({ type: String })
+  endDate: String;
 
   @ApiProperty({
     description: 'The category of the task',

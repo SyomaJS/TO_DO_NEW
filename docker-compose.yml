@@ -1,0 +1,30 @@
+version: '3.3'
+
+services:
+  mongodb:
+    container_name: mongo-db
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: 212wly13kz
+    volumes:
+      - ./mongodata:/data/db
+    ports:
+      - 27017:27017
+
+  app:
+    container_name: nestjs-app
+    image: syomadev/my_todo_app:1.0
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      - PORT=${PORT}
+      - MONGO_URI=${MONGO_URI}
+      - ACCESS_TOKEN_KEY=${ACCESS_TOKEN_KEY}
+      - ACCESS_TOKEN_TIME=${ACCESS_TOKEN_TIME}
+      - REFRESH_TOKEN_KEY=${REFRESH_TOKEN_KEY}
+      - REFRESH_TOKEN_TIME=${REFRESH_TOKEN_TIME}
