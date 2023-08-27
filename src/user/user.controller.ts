@@ -8,6 +8,7 @@ import {
   Param,
   HttpCode,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger'; // Import swagger decorators
 import { UserService } from './user.service';
@@ -15,6 +16,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { Response } from 'express';
+import { AuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('Users') // Add a tag to group related endpoints in Swagger
 @Controller('user')

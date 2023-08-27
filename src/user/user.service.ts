@@ -88,35 +88,33 @@ export class UserService {
   }
 
   async login(loginUserDto: LoginUserDto, res: Response) {
-    try {
-      const user = await this.userRepository.findOne({
-        email: loginUserDto.email,
-      });
-      if (!user) {
-        throw new UnauthorizedException('Email or password is incorrect ...');
-      }
-      if (!user.is_active) {
-        throw new UnauthorizedException('User is not active');
-      }
-      const isTrue = await bcrypt.compare(
-        loginUserDto.password,
-        user.hashed_password,
-      );
-      if (!isTrue) {
-        throw new UnauthorizedException('Email or password is incorrect ...');
-      }
+    const user = await this.userRepository.findOne({
+      email: loginUserDto.email,
+    });
+    if (!user) {
+      throw new UnauthorizedException('Email or password is incorrect ...');
+    }
+    if (!user.is_active) {
+      throw new UnauthorizedException('User is not active');
+    }
+    const isTrue = await bcrypt.compare(
+      loginUserDto.password,
+      user.hashed_password,
+    );
+    if (!isTrue) {
+      throw new UnauthorizedException('Email or password is incorrect ...');
+    }
 
-      const tokens = await this.getTokens(user);
-      user.hashed_token = bcrypt.hashSync(tokens.refresh_token, 5);
-      await user.save();
+    const tokens = await this.getTokens(user);
+    user.hashed_token = bcrypt.hashSync(tokens.refresh_token, 5);
+    await user.save();
 
-      res.cookie('refresh_token', tokens.refresh_token, {
-        maxAge: 15 * 21 * 60 * 60 * 1000,
-        httpOnly: true,
-      });
+    res.cookie('refresh_token', tokens.refresh_token, {
+      maxAge: 15 * 21 * 60 * 60 * 1000,
+      httpOnly: true,
+    });
 
-      return { accessToken: tokens.access_token, user: user };
-    } catch (error) {}
+    return { accessToken: tokens.access_token, user: user };
   }
 
   async getAllUsers() {

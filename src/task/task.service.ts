@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -10,6 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Task, TaskDocument } from './schemas/task.schema';
 import { Model, isValidObjectId } from 'mongoose';
+import { UserReq } from './types/user.type';
 
 @Injectable()
 export class TaskService {
@@ -17,12 +20,13 @@ export class TaskService {
     @InjectModel(Task.name) private readonly taskModel: Model<TaskDocument>,
     private readonly jwtService: JwtService,
   ) {}
-  async createNewTask(createTaskDto: CreateTaskDto, token: string) {
-    const decoded = this.jwtService.decode(token);
-    const userId = decoded['id'];
+  async createNewTask(createTaskDto: CreateTaskDto, user: UserReq) {
+    if (!user)
+      throw new ForbiddenException('User is not allowed to create new task');
+
     const newTasak = await this.taskModel.create({
       ...createTaskDto,
-      userId: userId,
+      userId: user.id,
     });
     if (!newTasak)
       throw new InternalServerErrorException(
@@ -32,24 +36,28 @@ export class TaskService {
     return newTasak;
   }
 
-  async findAllTasks(token) {
+  async findAllTasks(token: string) {
     const decoded = this.jwtService.decode(token);
     const userId = decoded['id'];
     const tasks = await this.taskModel.find({ userId: userId });
     return tasks;
   }
 
-  async findOneTask(id: string) {
+  async findOneTask(id: string, user: UserReq) {
     if (!isValidObjectId(id)) throw new BadRequestException('Invalid ID');
-    const task = await this.taskModel.findOne({ _id: id });
+    if (!user) throw new ForbiddenException('User not authorized');
+
+    const task = await this.taskModel.findOne({ _id: id, userId: user.id });
     if (!task) throw new NotFoundException('Task is not found');
     return task;
   }
 
-  async updateTask(id: string, updateTaskDto: UpdateTaskDto) {
+  async updateTask(id: string, updateTaskDto: UpdateTaskDto, user: UserReq) {
     if (!isValidObjectId(id)) throw new BadRequestException('Invalid ID');
+    if (!user) throw new ForbiddenException('User not authorized');
+
     const updatedOne = await this.taskModel.findOneAndUpdate(
-      { _id: id },
+      { _id: id, userId: user.id },
       updateTaskDto,
       { new: true },
     );
@@ -60,9 +68,13 @@ export class TaskService {
     return updatedOne;
   }
 
-  async removeTask(id: string) {
+  async removeTask(id: string, user: UserReq) {
     if (!isValidObjectId(id)) throw new BadRequestException('Invalid ID');
-    const task = await this.taskModel.findOneAndDelete({ _id: id });
+    if (!user) throw new ForbiddenException('User not authorized');
+    const task = await this.taskModel.findOneAndDelete({
+      _id: id,
+      userId: user.id,
+    });
     if (!task) throw new NotFoundException('Task with such ID is not found');
 
     return { message: 'Successfully deleted', taskId: task._id };
